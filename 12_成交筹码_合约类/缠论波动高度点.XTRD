@@ -1,0 +1,99 @@
+<CODE>
+//缠论波动高度点
+CURRBARSCOUNT:=REFX1(BARPOS,9999)-BARPOS+1;
+TC1S:=IF(HIGH=HHV(HIGH,48),HIGH,NULL);
+TC2S:=REFX1(BARSLAST(TC1S=HIGH),9999)+1;
+UPPERS:=REFX1(IF(TC2S=1,HIGH,REF(HIGH,TC2S-1)),9999);
+BC1S:=IF(LOW=LLV(LOW,48),LOW,NULL);
+BC2S:=REFX1(BARSLAST(BC1S=LOW),9999)+1;
+LOWERS:=REFX1(IF(BC2S=1,LOW,REF(LOW,BC2S-1)),9999);
+LPS:=CURRBARSCOUNT<=BC2S AND LOW=LOWERS;
+HPS:=CURRBARSCOUNT<=TC2S AND HIGH=UPPERS;
+AB1S:=EMA(((2*CLOSE+HIGH+LOW)/4-LLV(LOW,30))/(HHV(HIGH,30)-LLV(LOW,30))*100,8);
+BA1S:=EMA(AB1S,5);
+PA:=10;
+PB:=REF(HIGH,PA)=HHV(HIGH,2*PA+1);
+PC:=FILTER(PB,PA);
+PD:=BACKSET(PC,PA+1);
+PE:=FILTER(PD,PA);
+AA21:=REF(LOW,PA)=LLV(LOW,2*PA+1);
+BB21:=FILTER(AA21,PA);
+CC21:=BACKSET(BB21,PA+1);
+DD21:=FILTER(CC21,PA);
+局部低点预选A:=BACKSET(LLV(LOW,10)<REF(LLV(LOW,9),1),9);
+局部低点预选B:=BACKSET(局部低点预选A=0 AND REF(局部低点预选A,1)=1,2);
+局部低点预选C:=IF(局部低点预选B=1 AND REF(局部低点预选B,1)=0,-1,0);
+局部高点预选A:=BACKSET(HHV(HIGH,10)>REF(HHV(HIGH,9),1),9);
+局部高点预选B:=BACKSET(局部高点预选A=0 AND REF(局部高点预选A,1)=1,2);
+局部高点预选C:=IF(局部高点预选B=1 AND REF(局部高点预选B,1)=0,1,0);
+缺口判断:=IF(LOW>REF(HIGH,1),1,IF(HIGH<REF(LOW,1),-1,0));
+距前高天:=BARSLAST(局部高点预选C=1);
+距前低天:=BARSLAST(局部低点预选C=-1);
+小值周期:=20;
+大值周期:=20;
+低保留AA:=IF(局部低点预选C=-1 AND REF(距前高天,1)>REF(距前低天,1) AND LLV(LOW,距前高天+1)<REF(LLV(LOW,距前高天+1),1),-1,0);
+低保留AB:=IF(局部低点预选C=-1 AND REF(距前高天,1)<=REF(距前低天,1) AND (距前高天>=4 OR LLV(缺口判断,距前高天)=-1 OR LLV(LOW,距前低天+2)<REF(LLV(LOW,距前低天+1),1)),-1,0);
+低保留S:=IF((低保留AA=-1 OR 低保留AB=-1) AND LOW<REF(HIGH,距前高天+1),-1,0);
+预判:=IF((距前低天<4 AND HHV(缺口判断,距前低天)<>1) OR REF(低保留S,距前低天)=0,1,0);
+判断:=IF(局部高点预选C=1 AND REF(距前低天,1)<=REF(距前高天,1) AND 预判=1 AND 大值周期>REF(小值周期,距前低天+1) AND 大值周期>REF(小值周期,距前低天) AND 大值周期>REF(大值周期,距前高天),1,0);
+高保留A:=IF(局部高点预选C=1 AND REF(距前低天,1)>REF(距前高天,1) AND HHV(HIGH,距前低天+1)>REF(HHV(HIGH,距前低天+1),1),1,0);
+高保留B:=IF(局部高点预选C=1 AND REF(距前低天,1)<=REF(距前高天,1) AND REF(低保留S,距前低天)=-1 AND (距前低天>=4 OR HHV(缺口判断,距前低天)=1),1,0);
+高保留:=IF((高保留A=1 OR 高保留B=1 OR 判断=1) AND HIGH>REF(LOW,距前低天+1),1,0);
+预判A:=IF((距前高天<4 AND HHV(缺口判断,距前高天)<>1) OR REF(高保留,距前高天)=0,1,0);
+判断A:=IF(局部低点预选C=-1 AND REF(距前高天,1)<=REF(距前低天,1) AND 预判A=1 AND 小值周期>REF(大值周期,距前高天+1) AND 小值周期>REF(大值周期,距前高天) AND 小值周期>REF(小值周期,距前低天),-1,0);
+低保留A:=IF(局部低点预选C=-1 AND REF(距前高天,1)>REF(距前低天,1) AND LLV(LOW,距前高天+1)<REF(LLV(LOW,距前高天+1),1),-1,0);
+低保留B:=IF(局部低点预选C=-1 AND REF(距前高天,1)<=REF(距前低天,1) AND (距前高天>=4 OR LLV(缺口判断,距前高天)=-1 OR 判断A=-1),-1,0);
+低保留:=IF((低保留A=-1 OR 低保留B=-1) AND LOW<REF(HIGH,距前高天+1),-1,0);
+距前高天A:=BARSLAST(高保留=1);
+距前低天A:=BARSLAST(低保留=-1);
+预判X:=IF((距前低天A<4 AND HHV(缺口判断,距前低天A)<>1) OR REF(低保留,距前低天A)=0,1,0);
+判断X:=IF(局部高点预选C=1 AND REF(距前低天A,1)<=REF(距前高天A,1) AND 预判X=1 AND 大值周期>REF(小值周期,距前低天A+1) AND 大值周期>REF(小值周期,距前低天A) AND 大值周期>REF(大值周期,距前高天A),1,0);
+高保留XA:=IF(局部高点预选C=1 AND REF(距前低天A,1)>REF(距前高天A,1) AND HHV(HIGH,距前低天A+1)>REF(HHV(HIGH,距前低天A+1),1),1,0);
+高保留XB:=IF(局部高点预选C=1 AND REF(距前低天A,1)<=REF(距前高天A,1) AND REF(低保留,距前低天A)=-1 AND (距前低天A>=4 OR HHV(缺口判断,距前低天A)=1),1,0);
+高保留X:=IF((高保留XA=1 OR 高保留XB=1 OR 判断X=1) AND HIGH>REF(LOW,距前低天A+1),1,0);
+预判XA:=IF((距前高天A<4 AND HHV(缺口判断,距前高天A)<>1) OR REF(高保留XA,距前高天A)=0,1,0);
+判断XA:=IF(局部低点预选C=-1 AND REF(距前高天A,1)<=REF(距前低天A,1) AND 预判XA=1 AND 小值周期>REF(大值周期,距前高天A+1) AND 小值周期>REF(大值周期,距前高天A) AND 小值周期>REF(小值周期,距前低天A),-1,0);
+低保留XA:=IF(局部低点预选C=-1 AND REF(距前高天A,1)>REF(距前低天A,1) AND LLV(LOW,距前高天A+1)<REF(LLV(LOW,距前高天A+1),1),-1,0);
+低保留XB:=IF(局部低点预选C=-1 AND REF(距前高天A,1)<=REF(距前低天A,1) AND (距前高天A>=4 OR LLV(缺口判断,距前高天A)=-1 OR 判断XA=-1),-1,0);
+低保留X:=IF((低保留XA=-1 OR 低保留XB=-1) AND LOW<REF(HIGH,距前高天A+1),-1,0);
+距前高天YA:=BARSLAST(高保留X=1);
+距前低天YA:=BARSLAST(低保留X=-1);
+预判YX:=IF((距前低天YA<4 AND HHV(缺口判断,距前低天YA)<>1) OR REF(低保留X,距前低天YA)=0,1,0);
+判断YX:=IF(局部高点预选C=1 AND REF(距前低天YA,1)<=REF(距前高天YA,1) AND 预判YX=1 AND 大值周期>REF(小值周期,距前低天YA+1) AND 大值周期>REF(小值周期,距前低天YA) AND 大值周期>REF(大值周期,距前高天YA),1,0);
+高保留YXA:=IF(局部高点预选C=1 AND REF(距前低天YA,1)>REF(距前高天YA,1) AND HHV(HIGH,距前低天YA+1)>REF(HHV(HIGH,距前低天YA+1),1),1,0);
+高保留YXB:=IF(局部高点预选C=1 AND REF(距前低天YA,1)<=REF(距前高天YA,1) AND REF(低保留X,距前低天YA)=-1 AND (距前低天YA>=4 OR HHV(缺口判断,距前低天YA)=1),1,0);
+高保留YX:=IF((高保留YXA=1 OR 高保留YXB=1 OR 判断YX=1) AND HIGH>REF(LOW,距前低天YA+1),1,0);
+预判YXA:=IF((距前高天YA<4 AND HHV(缺口判断,距前高天YA)<>1) OR REF(高保留YXA,距前高天YA)=0,1,0);
+判断YXA:=IF(局部低点预选C=-1 AND REF(距前高天YA,1)<=REF(距前低天YA,1) AND 预判YXA=1 AND 小值周期>REF(大值周期,距前高天YA+1) AND 小值周期>REF(大值周期,距前高天YA) AND 小值周期>REF(小值周期,距前低天YA),-1,0);
+低保留YXA:=IF(局部低点预选C=-1 AND REF(距前高天YA,1)>REF(距前低天YA,1) AND LLV(LOW,距前高天YA+1)<REF(LLV(LOW,距前高天YA+1),1),-1,0);
+低保留YXB:=IF(局部低点预选C=-1 AND REF(距前高天YA,1)<=REF(距前低天YA,1) AND (距前高天YA>=4 OR LLV(缺口判断,距前高天YA)=-1 OR 判断YXA=-1),-1,0);
+低保留YX:=IF((低保留YXA=-1 OR 低保留YXB=-1) AND LOW<REF(HIGH,距前高天YA+1),-1,0);
+AAAD:=IF(高保留YX=1 AND 低保留YX=-1 AND HIGH>REF(HIGH,REF(距前高天YA,1)+2),1,IF(高保留YX=1 AND 低保留YX=-1 AND LOW<REF(LOW,REF(距前低天YA,1)+2),-1,0));
+极点保留:=IF(AAAD=0,高保留YX+低保留YX,AAAD);
+局部极点:IF(极点保留=-1,LOW,IF(极点保留=1,HIGH,NULL)),CIRCLEDOT,COLORBLACK;
+顶:VALUEWHEN(极点保留=1,HIGH),NODRAW,COLORCYAN;
+底:VALUEWHEN(极点保留=-1,LOW),NODRAW,COLORYELLOW;
+Z:=IF(极点保留=1,HIGH,LOW);
+DRAWHORIZONTALLINE(极点保留=1||极点保留=-1,Z,COLORBLACK),DOT;
+DRAWSL1(极点保留=-1||ISLASTBAR&&BARSLAST(极点保留=-1)>BARSLAST(极点保留=1),VALUEWHEN(极点保留=1,HIGH),0,BARSLAST(极点保留=1),1),COLORGREEN,LINETHICK3;
+STICKLINE1(BACKSET(极点保留=1||ISLASTBAR&&BARSLAST(极点保留=-1)<BARSLAST(极点保留=1),BARSLAST(极点保留=-1)+1),CLOSE,OPEN,3,1),COLORRED;
+STICKLINE1(BACKSET(极点保留=-1||ISLASTBAR&&BARSLAST(极点保留=-1)>BARSLAST(极点保留=1),BARSLAST(极点保留=1)+1),CLOSE,OPEN,3,1),COLORCYAN;
+DRAWNUMBER(CROSS(BACKSET(极点保留=1||ISLASTBAR&&BARSLAST(极点保留=-1)<BARSLAST(极点保留=1),BARSLAST(极点保留=-1)+1),0.5),LOW,LOW,0,COLORYELLOW),ALIGN2,VALIGN0,FONTSIZE20;
+DRAWNUMBER(CROSS(BACKSET(极点保留=-1||ISLASTBAR&&BARSLAST(极点保留=-1)>BARSLAST(极点保留=1),BARSLAST(极点保留=1)+1),0.5),HIGH,HIGH,0,COLORWHITE),ALIGN2,VALIGN2,FONTSIZE20;
+DRAWLINE(BACKSET(极点保留=1||ISLASTBAR&&BARSLAST(极点保留=-1)<BARSLAST(极点保留=1),BARSLAST(极点保留=-1)+1),HIGH,1,MAX(CLOSE,OPEN),COLORRED);
+DRAWLINE(BACKSET(极点保留=-1||ISLASTBAR&&BARSLAST(极点保留=-1)>BARSLAST(极点保留=1),BARSLAST(极点保留=1)+1),HIGH,1,MAX(CLOSE,OPEN),COLORCYAN);
+DRAWLINE(BACKSET(极点保留=1||ISLASTBAR&&BARSLAST(极点保留=-1)<BARSLAST(极点保留=1),BARSLAST(极点保留=-1)+1),LOW,1,MIN(CLOSE,OPEN),COLORRED);
+DRAWLINE(BACKSET(极点保留=-1||ISLASTBAR&&BARSLAST(极点保留=-1)>BARSLAST(极点保留=1),BARSLAST(极点保留=1)+1),LOW,1,MIN(CLOSE,OPEN),COLORCYAN);
+DRAWSL(BARSLAST(极点保留=-1)>=1&&BARSLAST(极点保留=-1)<BARSLAST(极点保留=1),VALUEWHEN(BARSLAST(极点保留=-1)=1,LOW),0,1,0,COLORMAGENTA),LINETHICK3;
+
+</CODE>
+<VERSION>
+130112
+</VERSION>
+<EDITTIME>
+2026年09月28日22:15:43
+</EDITTIME>
+<PROPERTY>
+0
+</PROPERTY>
+// END

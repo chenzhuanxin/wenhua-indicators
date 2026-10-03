@@ -1,0 +1,24 @@
+<CODE>
+//ÏäÌå²¨¶ÎÂòÂôÌáÊ¾
+N:=30;
+Ïä¶¥:REF(HHV(HIGH,N),1),COLORRED,LINETHICK2;
+Ïäµ×:REF(LLV(LOW,N),1),COLORGREEN,LINETHICK2;
+//²¨¶Î£ºÏäµ×Âò Ïä¶¥Âô
+Âò:=LOW<=Ïäµ×&&CLOSE>Ïäµ×;
+Âô:=HIGH>=Ïä¶¥&&CLOSE<Ïä¶¥;
+DRAWTEXT(Âò,L,'Ïäµ×Âò'),COLORRED,FONTSIZE18;
+DRAWTEXT(Âô,H,'Ïä¶¥Âô'),COLORGREEN,FONTSIZE18;
+DRAWICON(Âò,L,1);
+DRAWICON(Âô,H,2);
+
+</CODE>
+<VERSION>
+130112
+</VERSION>
+<EDITTIME>
+2026Äê09ÔÂ28ÈÕ22:15:43
+</EDITTIME>
+<PROPERTY>
+0
+</PROPERTY>
+// END
