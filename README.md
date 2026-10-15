@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.png" width="120" alt="wenhua-indicators"></p>
+
 # 文华财经指标库（公歧子系列）
 
 来源：微信公众号「公歧子」12 篇文章（技术指标1 ~ 技术指标12）  
